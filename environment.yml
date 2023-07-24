@@ -1,0 +1,10 @@
+name: nf-platereader-screen
+
+channels:
+    - conda-forge
+
+dependencies:
+    - python
+    - pip
+    - pip:
+        - hts-tools

@@ -23,4 +23,4 @@ jobs:
     - uses: nf-core/setup-nextflow@v1
     - name: Test
       run: |
-          nextflow run ${GITHUB_WORKSPACE} -c test/nextflow.config
+          nextflow run ${GITHUB_WORKSPACE} -c test/nextflow.config -bg -process.executor=local

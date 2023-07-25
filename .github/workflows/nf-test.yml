@@ -13,14 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: create environment with mamba
-      uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 3.11
         mamba-version: "*"
         channels: conda-forge,defaults
         channel-priority: true
     - uses: nf-core/setup-nextflow@v1
-    - name: Test
+    - name: Test Nextflow pipeline
       run: |
-          nextflow run ${GITHUB_WORKSPACE} -c test/nextflow.config -bg -process.executor=local
+          nextflow run ${GITHUB_WORKSPACE} -c test/nextflow.config -process.executor=local

@@ -9,25 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -el {0}
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.11"
     - name: create environment with mamba
       uses: conda-incubator/setup-miniconda@v2
       with:
+        python-version: 3.8
         mamba-version: "*"
-        channels: conda-forge,bioconda,defaults
-        use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
-        auto-update-conda: true
+        channels: conda-forge,defaults
+        channel-priority: true
         auto-activate-base: true
-    - name: Install Nextflow
+        activate-environment: ""
+    - uses: nf-core/setup-nextflow@v1
+    - name: Test
       run: |
-        curl -fsSL https://get.nextflow.io | bash
-    - name: Test with scripts
-      run: |
-          nextflow run main.nf -c test/nextflow.config
+          nextflow run ${GITHUB_WORKSPACE} -c test/nextflow.config

@@ -140,8 +140,7 @@ sample_ch = sample_sheet_ch
                                 file("${params.data_dir}/${it.data_filename}")) }
                    .groupTuple()
 
-layout_ch = Channel.fromPath( params.sample_sheet, 
-                              checkIfExists: true )
+layout_ch = sample_sheet_ch
                    .splitCsv( header: true )
                    .map { file("${params.data_dir}/${it.compound_source_filename}") }
                    .unique()

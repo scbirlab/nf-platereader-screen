@@ -132,20 +132,20 @@ dirs_to_make.each {
 */
 
 sample_sheet_ch = Channel.fromPath( params.sample_sheet, 
-                              checkIfExists: true )
+                                    checkIfExists: true )
 
 sample_ch = sample_sheet_ch
                    .splitCsv( header: true )
                    .map { tuple(it.experiment_id, 
                                 file("${params.data_dir}/${it.data_filename}")) }
                    .groupTuple()
+                   .map { key, words -> tuple( groupKey(key, words.size()), words ) }
 
 layout_ch = sample_sheet_ch
                    .splitCsv( header: true )
-                   .map { file("${params.data_dir}/${it.compound_source_filename}") }
+                   .map { tuple(it.experiment_id,
+                                file("${params.data_dir}/${it.compound_source_filename}")) }
                    .unique()
-                   .collect()
-
 
 /*
 ========================================================================================
@@ -155,7 +155,7 @@ layout_ch = sample_sheet_ch
 
 workflow {
 
-   DATA2COLUMNS_and_NORMALIZE(sample_ch, layout_ch, sample_sheet_ch)
+   DATA2COLUMNS_and_NORMALIZE(sample_ch.join(layout_ch).combine(sample_sheet_ch))
 
    DATA2COLUMNS_and_NORMALIZE.out | QC
    DATA2COLUMNS_and_NORMALIZE.out | PLOTS
@@ -178,9 +178,7 @@ process DATA2COLUMNS_and_NORMALIZE {
                mode: 'copy' )
 
    input:
-   tuple val( expt_id ), path( data )
-   path compound_source_layout 
-   path sample_sheet
+   tuple val( expt_id ), path( data ), path( compound_source_layout ), path( sample_sheet )
 
    output:
    tuple val( expt_id ), path( "*_normalized.tsv" )

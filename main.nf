@@ -131,8 +131,10 @@ dirs_to_make.each {
 ========================================================================================
 */
 
-sample_ch = Channel.fromPath( params.sample_sheet, 
+sample_sheet_ch = Channel.fromPath( params.sample_sheet, 
                               checkIfExists: true )
+
+sample_ch = sample_sheet_ch
                    .splitCsv( header: true )
                    .map { tuple(it.experiment_id, 
                                 file("${params.data_dir}/${it.data_filename}")) }
@@ -154,7 +156,7 @@ layout_ch = Channel.fromPath( params.sample_sheet,
 
 workflow {
 
-   DATA2COLUMNS_and_NORMALIZE(sample_ch, layout_ch)
+   DATA2COLUMNS_and_NORMALIZE(sample_ch, layout_ch, sample_sheet_ch)
 
    DATA2COLUMNS_and_NORMALIZE.out | QC
    DATA2COLUMNS_and_NORMALIZE.out | PLOTS
@@ -179,6 +181,7 @@ process DATA2COLUMNS_and_NORMALIZE {
    input:
    tuple val( expt_id ), path( data )
    path compound_source_layout 
+   path sample_sheet
 
    output:
    tuple val( expt_id ), path( "*_normalized.tsv" )
@@ -191,7 +194,7 @@ process DATA2COLUMNS_and_NORMALIZE {
       > ${expt_id}-compounds.tsv
 
    hts parse ${data} --data-shape ${params.export_layout} \
-      | hts join --right ${params.sample_sheet} \
+      | hts join --right ${sample_sheet} \
       | hts join --right ${expt_id}-compounds.tsv \
       | hts normalize \
          --control ${params.control_column} \

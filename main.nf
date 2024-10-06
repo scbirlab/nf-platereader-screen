@@ -38,7 +38,8 @@ if ( params.help ) {
             grouping          Columns with labels indicating groups (i.e batches) within which to normalize data. Often this will be a column of plate labels.
             hit_grouping      Columns with labels indicating repeated measurements of experimental conditions. Often this will be a column indicating different compounds.
 
-         Optional parameters (with defaults):   
+         Optional parameters (with defaults):
+            normalization_method = "npg"             How to normalize data. Default is "normalized proportional growth". Alternative is "pon": "proportion of negative".
             layout_content_name = "compound_name"    A name to give the data from the wells of the compound source plates.
             control_column = "compound_name"         Name of column containing labels indicating positive and negative controls.
 
@@ -185,20 +186,21 @@ process DATA2COLUMNS_and_NORMALIZE {
 
    script:
    """
-   hts pivot ${compound_source_layout} \
-      --name ${params.layout_content_name} \
-      --prefix compound_source \
-      > ${expt_id}-compounds.tsv
+   hts pivot "${compound_source_layout}" \
+      --name "${params.layout_content_name}" \
+      --prefix "compound_source" \
+      > "${expt_id}-compounds.tsv"
 
-   hts parse ${data} --data-shape ${params.export_layout} \
-      | hts join --right ${sample_sheet} \
-      | hts join --right ${expt_id}-compounds.tsv \
+   hts parse ${data} --data-shape "${params.export_layout}" \
+      | hts join --right "${sample_sheet}" \
+      | hts join --right "${expt_id}-compounds.tsv" \
       | hts normalize \
          --control ${params.control_column} \
          --positive ${params.positive} \
          --negative ${params.negative} \
          --grouping ${params.grouping} \
-         --output ${expt_id}_normalized.tsv
+         --method "${params.normalization_method}" \
+         --output "${expt_id}_normalized.tsv"
    """
 
 }
@@ -221,13 +223,13 @@ process QC {
 
    script:
    """
-   hts qc ${data} \
+   hts qc "${data}" \
       --control ${params.control_column} \
       --positive ${params.positive} \
       --negative ${params.negative} \
       --grouping ${params.grouping} \
-      --plot ${expt_id} \
-      --output ${expt_id}_qc.tsv
+      --plot "${expt_id}" \
+      --output "${expt_id}_qc.tsv"
    """
 
 }
@@ -250,12 +252,12 @@ process CALL_HITS {
 
    script:
    """
-   hts summarize ${data} \
+   hts summarize "${data}" \
       --control ${params.control_column} \
       --positive ${params.positive} \
       --negative ${params.negative} \
       --grouping ${params.hit_grouping} \
-      --plot ${expt_id}_summary \
+      --plot "${expt_id}_summary" \
       --output "${expt_id}_summary.tsv" 
    """
 
@@ -279,12 +281,12 @@ process CALL_HITS_COUNTERSCREEN {
 
    script:
    """
-   hts summarize ${data} \
+   hts summarize "${data}" \
       --control ${params.counterscreen.split(":")[0]} \
       --positive ${params.positive} \
       --negative ${params.counterscreen.split(":")[1]} \
       --grouping ${params.hit_grouping} \
-      --plot ${expt_id}_summary-counter \
+      --plot "${expt_id}_summary-counter" \
       --output "${expt_id}_summary-counter.tsv" 
    """
 
@@ -308,19 +310,19 @@ process PLOTS {
 
    script:
    """
-   hts plot-hm ${data} \
+   hts plot-hm "${data}" \
       --grouping ${params.grouping} \
       --output "${expt_id}" 
 
-   hts plot-rep ${data} \
+   hts plot-rep "${data}" \
       --control ${params.control_column} \
       --positive ${params.positive} \
       --negative ${params.negative} \
       --grouping ${params.hit_grouping} \
       --output "${expt_id}" 
 
-   hts plot-hist ${data} \
-      --control ${params.control_column} \
+   hts plot-hist "${data}" \
+      --control "${params.control_column}" \
       --positive ${params.positive} \
       --negative ${params.negative} \
       --output "${expt_id}" 

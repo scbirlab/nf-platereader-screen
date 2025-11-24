@@ -23,5 +23,6 @@ fi
 
 # Examples with sample sheet
 nextflow run "$script_dir"/.. \
+    -c "$script_dir"/nextflow.config \
     -resume $docker_flag \
     -work-dir "$script_dir"/work

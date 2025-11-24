@@ -4,7 +4,7 @@ channels:
     - conda-forge
 
 dependencies:
-    - python=3.12
+    - python=3.13
     - pip
     - pip:
-        - 'hts-tools==0.0.4.post1'
+        - 'hts-tools>=0.0.4.post2'
